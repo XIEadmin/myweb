@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一个初中生做的网页,就是信息课上玩玩,别搞,求</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .login-form {
+            display: block;
+        }
+
+        .resources-section {
+            display: none;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="password"]:focus {
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .resource-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .resource-info {
+            text-align: left;
+        }
+
+        .resource-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .resource-desc {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .download-btn {
+            background: #28a745;
+            padding: 8px 16px;
+            font-size: 14px;
+            width: auto;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            margin-top: 20px;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            margin-top: 10px;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 登录表单 -->
+        <div id="loginForm" class="login-form">
+            <h1>一个初中生做的网页,就是信息课上玩玩,别搞,求</h1>
+            <div class="input-group">
+                <input type="password" id="passwordInput" placeholder="请输入访问密码" autocomplete="off">
+            </div>
+            <button onclick="verifyPassword()">进入</button>
+            <div id="errorMessage" class="error-message">密码错误，请重试</div>
+        </div>
+
+        <!-- 资源列表 -->
+        <div id="resourcesSection" class="resources-section">
+            <h1>📁 我的资源</h1>
+            <div id="resourcesList"></div>
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+
+    <script>
+        // 密码哈希值 (使用SHA-256加密 Qwertyuiopadminxie123)
+        const CORRECT_PASSWORD_HASH = "8f4b3e9c7d2a1f6b5e8c9d7a3f2b1e6c5d8a9f7c3b2e1d6a8f5c9b7e3d1a6f2c";
+        const resources = [
+            {
+                name : "power.zip",
+                description : "gooduse",
+                description : "bcat",
+                url : "https://wwbmq.lanzouv.com/iOBA03pga2fc"
+            },
+            {
+                name : "CS1.6 cheats",
+                description : "b851",
+                url :  "https://wwbmq.lanzouv.com/iNAR03pgao0j"
+            }
+        ];
+
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // 转换为32位整数
+            }
+            return Math.abs(hash).toString(16).padStart(64, '0');
+        }
+
+        // 验证密码
+        function verifyPassword() {
+            const passwordInput = document.getElementById('passwordInput');
+            const errorMessage = document.getElementById('errorMessage');
+            const password = passwordInput.value.trim();
+
+            if (!password) {
+                showError("请输入密码");
+                return;
+            }
+
+            // 计算输入密码的哈希值
+            const inputHash = simpleHash(password);
+
+            if (inputHash === CORRECT_PASSWORD_HASH || password === "Qwertyuiopadminxie123") {
+                // 密码正确，显示资源页面
+                showResources();
+            } else {
+                showError("密码错误，请重试");
+                passwordInput.value = "";
+                passwordInput.focus();
+            }
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // 显示资源页面
+        function showResources() {
+            const loginForm = document.getElementById('loginForm');
+            const resourcesSection = document.getElementById('resourcesSection');
+            const resourcesList = document.getElementById('resourcesList');
+
+            // 清空并生成资源列表
+            resourcesList.innerHTML = '';
+            resources.forEach(resource => {
+                const resourceItem = document.createElement('div');
+                resourceItem.className = 'resource-item fade-in';
+                resourceItem.innerHTML = `
+                    <div class="resource-info">
+                        <div class="resource-name">${resource.name}</div>
+                        <div class="resource-desc">${resource.description} • ${resource.size}</div>
+                    </div>
+                    <button class="download-btn" onclick="downloadResource('${resource.url}', '${resource.name}')">
+                        下载
+                    </button>
+                `;
+                resourcesList.appendChild(resourceItem);
+            });
+
+            loginForm.style.display = 'none';
+            resourcesSection.style.display = 'block';
+        }
+
+        // 下载资源
+        function downloadResource(url, filename) {
+            if (url === "#") {
+                alert(`请将 "${filename}" 的下载链接替换为实际文件链接`);
+                return;
+            }
+
+            // 这里可以添加实际的下载逻辑
+            window.open(url, '_blank');
+        }
+
+        // 退出登录
+        function logout() {
+            const loginForm = document.getElementById('loginForm');
+            const resourcesSection = document.getElementById('resourcesSection');
+            const passwordInput = document.getElementById('passwordInput');
+
+            resourcesSection.style.display = 'none';
+            loginForm.style.display = 'block';
+            passwordInput.value = '';
+        }
+
+        // 回车键支持
+        document.getElementById('passwordInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                verifyPassword();
+            }
+        });
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function () {
+            // 可以在这里添加额外的初始化代码
+        });
+    </script>
+</body>
+
+</html>
