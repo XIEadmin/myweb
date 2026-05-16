@@ -75,6 +75,11 @@
             cursor: pointer;
             width: 100%;
             transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 15px;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         }
 
         button:hover {
@@ -130,14 +135,6 @@
             font-size: 14px;
         }
 
-        .back-btn {
-            background: #6c757d;
-            margin-top: 10px;
-            width: auto;
-            padding: 10px 20px;
-            font-size: 14px;
-        }
-
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -158,7 +155,6 @@
 
 <body>
     <div class="container">
-        <!-- 登录表单 -->
         <div id="loginForm" class="login-form">
             <h1>一个初中生做的网页,就是信息课上玩玩,别搞,求</h1>
             <div class="input-group">
@@ -168,42 +164,31 @@
             <div id="errorMessage" class="error-message">密码错误，请重试</div>
         </div>
 
-        <!-- 资源列表 -->
         <div id="resourcesSection" class="resources-section">
             <h1>📁 我的资源</h1>
             <div id="resourcesList"></div>
+
+            <!-- 新增上传按钮 -->
+            <button class="upload-btn" onclick="goToUpload()">📁 上传新文件</button>
+
             <button class="logout-btn" onclick="logout()">退出登录</button>
         </div>
     </div>
 
     <script>
-        // 密码哈希值 (使用SHA-256加密 Qwertyuiopadminxie123)
-        const CORRECT_PASSWORD_HASH = "8f4b3e9c7d2a1f6b5e8c9d7a3f2b1e6c5d8a9f7c3b2e1d6a8f5c9b7e3d1a6f2c";
         const resources = [
             {
-                name : "power.zip",
-                description : "gooduse",
-                description : "bcat",
-                url : "https://wwbmq.lanzouv.com/iOBA03pga2fc"
+                name: "power.zip",
+                description: "gooduse",
+                url: "https://wwbmq.lanzouv.com/iOBA03pga2fc"
             },
             {
-                name : "CS1.6 cheats",
-                description : "b851",
-                url :  "https://wwbmq.lanzouv.com/iNAR03pgao0j"
+                name: "CS1.6 cheats",
+                description: "b851",
+                url: "https://wwbmq.lanzouv.com/iNAR03pgao0j"
             }
         ];
 
-        function simpleHash(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                const char = str.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash; // 转换为32位整数
-            }
-            return Math.abs(hash).toString(16).padStart(64, '0');
-        }
-
-        // 验证密码
         function verifyPassword() {
             const passwordInput = document.getElementById('passwordInput');
             const errorMessage = document.getElementById('errorMessage');
@@ -214,11 +199,7 @@
                 return;
             }
 
-            // 计算输入密码的哈希值
-            const inputHash = simpleHash(password);
-
-            if (inputHash === CORRECT_PASSWORD_HASH || password === "Qwertyuiopadminxie123") {
-                // 密码正确，显示资源页面
+            if (password === "Qwertyuiopadminxie123") {
                 showResources();
             } else {
                 showError("密码错误，请重试");
@@ -227,7 +208,6 @@
             }
         }
 
-        // 显示错误信息
         function showError(message) {
             const errorMessage = document.getElementById('errorMessage');
             errorMessage.textContent = message;
@@ -237,13 +217,11 @@
             }, 3000);
         }
 
-        // 显示资源页面
         function showResources() {
             const loginForm = document.getElementById('loginForm');
             const resourcesSection = document.getElementById('resourcesSection');
             const resourcesList = document.getElementById('resourcesList');
 
-            // 清空并生成资源列表
             resourcesList.innerHTML = '';
             resources.forEach(resource => {
                 const resourceItem = document.createElement('div');
@@ -251,7 +229,7 @@
                 resourceItem.innerHTML = `
                     <div class="resource-info">
                         <div class="resource-name">${resource.name}</div>
-                        <div class="resource-desc">${resource.description} • ${resource.size}</div>
+                        <div class="resource-desc">${resource.description}</div>
                     </div>
                     <button class="download-btn" onclick="downloadResource('${resource.url}', '${resource.name}')">
                         下载
@@ -264,18 +242,14 @@
             resourcesSection.style.display = 'block';
         }
 
-        // 下载资源
         function downloadResource(url, filename) {
-            if (url === "#") {
-                alert(`请将 "${filename}" 的下载链接替换为实际文件链接`);
-                return;
-            }
-
-            // 这里可以添加实际的下载逻辑
             window.open(url, '_blank');
         }
 
-        // 退出登录
+        function goToUpload() {
+            window.location.href = 'input.html';
+        }
+
         function logout() {
             const loginForm = document.getElementById('loginForm');
             const resourcesSection = document.getElementById('resourcesSection');
@@ -286,17 +260,13 @@
             passwordInput.value = '';
         }
 
-        // 回车键支持
         document.getElementById('passwordInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 verifyPassword();
             }
         });
 
-        // 页面加载完成后的初始化
-        document.addEventListener('DOMContentLoaded', function () {
-            // 可以在这里添加额外的初始化代码
-        });
+        document.addEventListener('DOMContentLoaded', function () { });
     </script>
 </body>
 
