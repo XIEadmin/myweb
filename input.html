@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件上传 - 我的资源</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .login-form,
+        .upload-section {
+            display: block;
+        }
+
+        .resources-section {
+            display: none;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="password"]:focus,
+        input[type="text"]:focus {
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 15px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .file-upload {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 20px 0;
+            background: #f8f9fa;
+            cursor: pointer;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #eef2ff;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .uploaded-files {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .file-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 登录表单 -->
+        <div id="loginForm" class="login-form">
+            <h1>文件上传系统</h1>
+            <div class="input-group">
+                <input type="password" id="passwordInput" placeholder="请输入访问密码" autocomplete="off">
+            </div>
+            <button onclick="verifyPassword()">登录</button>
+            <div id="errorMessage" class="error-message">密码错误，请重试</div>
+            <button class="back-btn" onclick="goBack()">返回主页</button>
+        </div>
+
+        <!-- 上传区域 -->
+        <div id="uploadSection" class="upload-section" style="display: none;">
+            <h1>📁 上传文件</h1>
+
+            <!-- 文件描述输入 -->
+            <div class="input-group">
+                <input type="text" id="fileDescription" placeholder="输入文件描述（可选）">
+            </div>
+
+            <!-- 文件上传区域 -->
+            <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                <p>📁 点击选择文件或拖拽文件到此处</p>
+                <p style="font-size: 12px; color: #999; margin-top: 10px;">支持所有文件类型</p>
+                <input type="file" id="fileInput" style="display: none;" multiple>
+            </div>
+
+            <div class="file-info" id="fileInfo"></div>
+
+            <!-- 上传按钮 -->
+            <button onclick="uploadFiles()">上传文件</button>
+
+            <!-- 已上传文件列表 -->
+            <div class="uploaded-files">
+                <h3>已上传的文件:</h3>
+                <div id="uploadedFilesList"></div>
+            </div>
+
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+            <button class="back-btn" onclick="goBack()">返回主页</button>
+        </div>
+    </div>
+
+    <script>
+        // 验证密码
+        function verifyPassword() {
+            const passwordInput = document.getElementById('passwordInput');
+            const errorMessage = document.getElementById('errorMessage');
+            const password = passwordInput.value.trim();
+
+            if (!password) {
+                showError("请输入密码");
+                return;
+            }
+
+            if (password === "Qwertyuiopadminxie123") {
+                showUploadSection();
+                loadUploadedFiles(); // 加载已保存的文件
+            } else {
+                showError("密码错误，请重试");
+                passwordInput.value = "";
+                passwordInput.focus();
+            }
+        }
+
+        function showUploadSection() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('uploadSection').style.display = 'block';
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // 文件选择处理
+        document.getElementById('fileInput').addEventListener('change', function (e) {
+            const files = e.target.files;
+            const fileInfo = document.getElementById('fileInfo');
+
+            if (files.length > 0) {
+                let info = '';
+                for (let i = 0; i < files.length; i++) {
+                    info += `${files[i].name} (${formatFileSize(files[i].size)})<br>`;
+                }
+                fileInfo.innerHTML = `<strong>选中的文件:</strong><br>${info}`;
+            } else {
+                fileInfo.innerHTML = '';
+            }
+        });
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 上传文件（前端模拟）
+        function uploadFiles() {
+            const fileInput = document.getElementById('fileInput');
+            const description = document.getElementById('fileDescription').value.trim();
+            const files = fileInput.files;
+
+            if (files.length === 0) {
+                alert('请选择要上传的文件');
+                return;
+            }
+
+            // 模拟上传过程（实际在 GitHub Pages 中无法真正上传到服务器）
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+
+                // 创建文件信息对象
+                const fileInfo = {
+                    name: file.name,
+                    description: description || file.name,
+                    size: file.size,
+                    type: file.type,
+                    uploadTime: new Date().toISOString(),
+                    // 在真实环境中这里会是文件的下载链接
+                    // 但在 GitHub Pages 中我们只能保存文件名和描述
+                    url: '#' // 占位符
+                };
+
+                // 保存到 localStorage（浏览器本地存储）
+                saveFile(fileInfo);
+            }
+
+            alert('文件信息已保存！（注意：GitHub Pages 无法真正存储文件，仅保存文件信息）');
+
+            // 清空输入
+            fileInput.value = '';
+            document.getElementById('fileDescription').value = '';
+            document.getElementById('fileInfo').innerHTML = '';
+
+            // 重新加载文件列表
+            loadUploadedFiles();
+        }
+
+        // 保存文件信息到 localStorage
+        function saveFile(fileInfo) {
+            let uploadedFiles = JSON.parse(localStorage.getItem('uploadedFiles') || '[]');
+            uploadedFiles.push(fileInfo);
+            localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+        }
+
+        // 加载已上传的文件
+        function loadUploadedFiles() {
+            const uploadedFilesList = document.getElementById('uploadedFilesList');
+            const uploadedFiles = JSON.parse(localStorage.getItem('uploadedFiles') || '[]');
+
+            uploadedFilesList.innerHTML = '';
+
+            if (uploadedFiles.length === 0) {
+                uploadedFilesList.innerHTML = '<p style="color: #999;">暂无上传的文件</p>';
+                return;
+            }
+
+            uploadedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item fade-in';
+                fileItem.innerHTML = `
+                    <div>
+                        <strong>${file.name}</strong><br>
+                        <small>${file.description} • ${formatFileSize(file.size)}</small>
+                    </div>
+                    <div>
+                        <button onclick="deleteFile(${index})" style="background: #dc3545; padding: 5px 10px; font-size: 12px;">删除</button>
+                    </div>
+                `;
+                uploadedFilesList.appendChild(fileItem);
+            });
+        }
+
+        // 删除文件
+        function deleteFile(index) {
+            if (confirm('确定要删除这个文件吗？')) {
+                let uploadedFiles = JSON.parse(localStorage.getItem('uploadedFiles') || '[]');
+                uploadedFiles.splice(index, 1);
+                localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+                loadUploadedFiles();
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            document.getElementById('uploadSection')styledisplay='none';
+            document.getElementById('loginForm')styledisplay='block';
+            document.getElementById('passwordInput').value = '';
+        }
+
+        // 返回主页
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        // 回车键登录
+        document.getElementById('passwordInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                verifyPassword();
+            }
+        });
+
+        // 页面加载时检查是否已登录
+        document.addEventListener('DOMContentLoaded', function () {
+            // 可以在这里添加自动登录逻辑（如果需要）
+        });
+    </script>
+</body>
+
+</html>
